@@ -10,6 +10,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -89,6 +90,26 @@ class FirebaseUnsubscribeUser {
             }
             Log.d("WebviewExample", msg);
         });
+    }
+}
+
+class RedirectSubdomain{
+    private final WebView webview;
+    private Context context;
+    public RedirectSubdomain(Context baseContext, WebView mWebView) {
+        this.context = baseContext;
+        this.webview = mWebView;
+    }
+
+    @JavascriptInterface
+    public void postMessage(String data) throws IOException {
+        Log.d("WebviewExample",data);
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(data));
+        Intent chooser = Intent.createChooser(intent, "Select browser");
+        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(chooser);
+
     }
 }
 
@@ -352,6 +373,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (getIntent().getStringExtra("url") != null) {
             mWebView.loadUrl(getIntent().getStringExtra("url"));
+            Log.d("-->Url notification",getIntent().getStringExtra("url"));
         } else {
             mWebView.loadUrl(baseURL);
         }
@@ -383,6 +405,7 @@ public class MainActivity extends AppCompatActivity {
         mWebView.addJavascriptInterface(new FirebaseUnsubscribeUser(), "FirebaseUnsubscribeUser");
         mWebView.addJavascriptInterface(new DownloadFiles(getBaseContext()), "DownloadFiles");
         mWebView.addJavascriptInterface(new RedirectBrowser(getBaseContext(), mWebView), "RedirectBrowser");
+        mWebView.addJavascriptInterface(new RedirectSubdomain(getBaseContext(), mWebView), "RedirectSubdomain");
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
